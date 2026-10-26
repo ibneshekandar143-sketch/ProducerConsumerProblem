@@ -1,0 +1,55 @@
+class SharedData{
+    private int value;
+    private boolean available = false;
+
+    public synchronized void produce(int value){
+        while (available) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            
+        }
+        this.value = value;
+        available = true;
+
+        System.out.println("Produce: "+ value);
+        notify();
+    }
+
+    public synchronized void consume(){
+        while (!available) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            
+        }
+        System.out.println("Consumed: "+ value);
+        available = false;
+        notify();
+    }
+
+}
+public class ProducerConsumerExample{
+    public static void main(String[] args) {
+        SharedData data = new SharedData();
+
+        Thread producer = new Thread(()->{
+            for (int i = 0; i < 5; i++) {
+                data.produce(i);
+            }
+        });
+
+        Thread consumer = new Thread(()->{
+            for (int i = 0; i < 5; i++) {
+                data.consume();
+            }
+        });
+
+        producer.start();
+        consumer.start();
+    }
+}
